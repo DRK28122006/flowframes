@@ -1,0 +1,24 @@
+{
+  "title": "Understanding the Solar System",
+  "description": "A short introduction to our solar system.",
+  "author": "FlowFrames",
+  "settings": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "scenes": [
+    {
+      "id": "scene-1",
+      "title": "Introduction",
+      "narration": "Our solar system is made up of the Sun and everything that orbits around it.",
+      "duration": 8
+    },
+    {
+      "id": "scene-2",
+      "title": "The Sun",
+      "narration": "At the center of our solar system is the Sun, a star that provides light and heat.",
+      "duration": 8
+    }
+  ]
+}
