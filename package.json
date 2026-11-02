@@ -4,10 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "inspect": "node src/inspect.js",
-  "build": "node src/build.js",
-  "render": "node src/render.js",
-  "make": "npm run build && npm run render"
+    "inspect": "node src/inspect.js",
+    "narrate": "node src/narrate.js",
+    "build": "node src/build.js",
+    "render": "node src/render.js",
+    "mux": "node src/mux.js",
+    "make": "npm run narrate && npm run build && npm run render && npm run mux"
   },
   "keywords": [],
   "author": "",

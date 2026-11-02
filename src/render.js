@@ -8,7 +8,7 @@ import { chromium } from "playwright";
 // ---------- 1. Settings ----------
 const lesson = JSON.parse(fs.readFileSync("content/lesson.json", "utf8"));
 const { width, height, fps } = lesson.settings;
-const OUTPUT = "build/out.mp4";
+const OUTPUT = "build/silent.mp4";
 
 // optional: `npm run render -- 3` renders only the first 3 seconds (fast test)
 const limitSeconds = process.argv[2] ? Number(process.argv[2]) : null;
@@ -32,10 +32,10 @@ try {
 
   // ---------- 4. Start FFmpeg, waiting to receive images ----------
   const ffmpeg = spawn("ffmpeg", [
-    "-y",
-    "-f", "image2pipe", "-framerate", String(fps), "-i", "-",   // read images from stdin
-    "-c:v", "libx264", "-pix_fmt", "yuv420p",                    // H.264 video that plays everywhere
-    OUTPUT,
+  "-y", "-hide_banner", "-loglevel", "warning",
+  "-f", "image2pipe", "-framerate", String(fps), "-i", "-",
+  "-c:v", "libx264", "-pix_fmt", "yuv420p",
+  OUTPUT,
   ], { stdio: ["pipe", "ignore", "inherit"] });
 
   const finished = once(ffmpeg, "close");

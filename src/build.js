@@ -1,7 +1,9 @@
 import fs from "node:fs";
 
 // ---------- 1. Read the lesson ----------
-const lesson = JSON.parse(fs.readFileSync("content/lesson.json", "utf8"));
+const timedPath = "build/lesson.timed.json";
+const source = fs.existsSync(timedPath) ? timedPath : "content/lesson.json";
+const lesson = JSON.parse(fs.readFileSync(source, "utf8"));
 const { width, height } = lesson.settings;
 
 // ---------- 2. Visual theme (change these to restyle everything) ----------
