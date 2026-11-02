@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "inspect": "node src/inspect.js"
+  "inspect": "node src/inspect.js",
+  "build": "node src/build.js"
   },
   "keywords": [],
   "author": "",
