@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "inspect": "node src/inspect.js",
-    "narrate": "node src/narrate.js",
-    "build": "node src/build.js",
-    "render": "node src/render.js",
-    "mux": "node src/mux.js",
-    "make": "npm run narrate && npm run build && npm run render && npm run mux"
+  "inspect": "node src/inspect.js",
+  "validate": "node src/validate.js",
+  "narrate": "node src/narrate.js",
+  "build": "node src/build.js",
+  "render": "node src/render.js",
+  "mux": "node src/mux.js",
+  "make": "npm run narrate && npm run build && npm run render && npm run mux"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,7 @@
   "type": "module",
   "dependencies": {
     "gsap": "^3.15.0",
-    "playwright": "^1.64.1"
+    "playwright": "^1.64.1",
+    "zod": "^4.6.7"
   }
 }

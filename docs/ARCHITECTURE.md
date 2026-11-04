@@ -42,14 +42,15 @@ Run everything with `npm run make`.
 
 - docs/          project documentation
 
+## Safety and speed
+
+- `lesson.json` is checked against `src/schema.js` before anything slow runs (`npm run validate`).
+- Text limits in the schema prevent on-screen overflow.
+- Narration is cached in `build/audio/` by a fingerprint of its text and providers.
+- `build.js` refuses to run if the timed lesson is older than `lesson.json`.
+
 ## Known limitations
 
 - Placeholder voice (Windows built-in)
-
 - No captions, music or transitions yet
-
-- No validation of lesson.json yet
-
-- Narration is regenerated on every run
-
 - Rendering is sequential

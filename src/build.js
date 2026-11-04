@@ -4,7 +4,14 @@ import { templates } from "./templates/index.js";
 
 // ---------- 1. Read the lesson (use the timed version if narration has been generated) ----------
 const timedPath = "build/lesson.timed.json";
-const source = fs.existsSync(timedPath) ? timedPath : "content/lesson.json";
+const lessonPath = "content/lesson.json";
+const hasTimed = fs.existsSync(timedPath);
+
+// If the lesson was edited after the last narration, the timed file is out of date.
+if (hasTimed && fs.statSync(timedPath).mtimeMs < fs.statSync(lessonPath).mtimeMs) {
+  throw new Error("content/lesson.json changed since the last narration. Run `npm run narrate` (or `npm run make`) first.");
+}
+const source = hasTimed ? timedPath : lessonPath;
 const lesson = JSON.parse(fs.readFileSync(source, "utf8"));
 const { width, height } = lesson.settings;
 console.log(`Building from ${source}`);

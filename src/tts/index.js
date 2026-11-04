@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 
 // Measure any audio file's length with ffprobe (part of your FFmpeg install)
@@ -28,4 +30,29 @@ export async function synthesize(text, outBase, providers = ["windows"], keys = 
     }
   }
   throw new Error("All TTS providers failed:\n" + errors.join("\n"));
+}
+
+/**
+ * Same as synthesize, but reuses an earlier result when the text and provider
+ * list are unchanged. Returns { file, seconds, provider, cached }.
+ */
+export async function synthesizeCached(text, providers, keys = {}, dir = "build/audio") {
+  fs.mkdirSync(dir, { recursive: true });
+
+  // The cache key: a short fingerprint of everything that affects the audio.
+  // If you later add voice, speed or language options, add them to this object.
+  const fingerprint = JSON.stringify({ text, providers });
+  const hash = crypto.createHash("sha1").update(fingerprint).digest("hex").slice(0, 16);
+
+  const outBase = `${dir}/${hash}`;
+  const metaFile = `${outBase}.json`;
+
+  if (fs.existsSync(metaFile)) {
+    const meta = JSON.parse(fs.readFileSync(metaFile, "utf8"));
+    if (fs.existsSync(meta.file)) return { ...meta, cached: true };
+  }
+
+  const result = await synthesize(text, outBase, providers, keys);
+  fs.writeFileSync(metaFile, JSON.stringify(result));   // only successes are cached
+  return { ...result, cached: false };
 }

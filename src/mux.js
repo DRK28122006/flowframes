@@ -25,7 +25,7 @@ const filter =
 args.push(
   "-filter_complex", filter,
   "-map", "0:v", "-map", "[aout]",
-  "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+  "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "44100", "-ac", "2",
   "-shortest",
   "build/out.mp4"
 );
