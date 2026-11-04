@@ -1,27 +1,50 @@
 import fs from "node:fs";
+import { THEME } from "./theme.js";
+import { templates } from "./templates/index.js";
 
-// ---------- 1. Read the lesson ----------
+// ---------- 1. Read the lesson (use the timed version if narration has been generated) ----------
 const timedPath = "build/lesson.timed.json";
 const source = fs.existsSync(timedPath) ? timedPath : "content/lesson.json";
 const lesson = JSON.parse(fs.readFileSync(source, "utf8"));
 const { width, height } = lesson.settings;
+console.log(`Building from ${source}`);
 
-// ---------- 2. Visual theme (change these to restyle everything) ----------
-const THEME = {
-  background: "#0f172a",
-  text: "#ffffff",
-  accent: "#38bdf8",
-  font: "Arial, sans-serif",
-};
+// ---------- 2. Turn every scene into HTML using its template ----------
+let sectionsHtml = "";
+const timing = [];
+let start = 0;
 
-// ---------- 3. Prepare the output folder ----------
+lesson.scenes.forEach((scene, i) => {
+  const number = i + 1;
+  const template = templates[scene.type];
+  if (!template) {
+    throw new Error(
+      `Scene ${number}: unknown type "${scene.type}". Available types: ${Object.keys(templates).join(", ")}`
+    );
+  }
+  if (!(scene.duration > 0)) {
+    throw new Error(`Scene ${number}: "duration" must be a number greater than 0.`);
+  }
+
+  let inner;
+  try {
+    inner = template.render(scene);
+  } catch (err) {
+    throw new Error(`Scene ${number} (${scene.type}) has missing or bad data: ${err.message}`);
+  }
+
+  sectionsHtml += `<section class="scene ${scene.type}" id="scene-${i}">${inner}</section>\n`;
+  timing.push({ start, end: start + scene.duration });
+  start += scene.duration;
+});
+
+// ---------- 3. Collect the CSS from every template ----------
+const templateCss = Object.values(templates).map((t) => t.css(THEME)).join("\n");
+
+// ---------- 4. Write the page ----------
 fs.mkdirSync("build", { recursive: true });
 fs.copyFileSync("node_modules/gsap/dist/gsap.min.js", "build/gsap.min.js");
 
-// ---------- 4. Make the lesson safe to embed inside a <script> tag ----------
-const data = JSON.stringify(lesson).replace(/</g, "\\u003c");
-
-// ---------- 5. The page ----------
 const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -38,81 +61,46 @@ const html = `<!DOCTYPE html>
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     text-align: center; padding: 120px; visibility: hidden;
   }
-  h1 { font-size: 140px; margin: 0 0 30px; color: ${THEME.accent}; }
-  h2 { font-size: 96px;  margin: 0 0 60px; color: ${THEME.accent}; }
-  p  { font-size: 56px;  margin: 0; }
-  ul { padding: 0; margin: 0; }
-  li { font-size: 64px; margin: 24px 0; list-style: none; }
+  ${templateCss}
 </style>
 </head>
 <body>
-<div id="stage"></div>
+<div id="stage">
+${sectionsHtml}
+</div>
 
 <script src="gsap.min.js"></script>
 <script>
-  const DATA = ${data};
+  const TIMING = ${JSON.stringify(timing)};
   const stage = document.getElementById("stage");
+  const sections = Array.from(document.querySelectorAll(".scene"));
 
-  // small helper: create an element containing text
-  function make(tag, text) {
-    const e = document.createElement(tag);
-    if (text !== undefined) e.textContent = text;   // textContent is safe (no HTML injection)
-    return e;
-  }
-
-  // one function per scene type
-  const templates = {
-    title(scene, section) {
-      section.append(make("h1", scene.heading), make("p", scene.sub));
-    },
-    points(scene, section) {
-      const list = make("ul");
-      scene.points.forEach((point) => list.append(make("li", point)));
-      section.append(make("h2", scene.heading), list);
-    },
-  };
-
-  // the timeline: paused, so WE control the time
+  // A paused timeline: we control the time ourselves.
   const tl = gsap.timeline({ paused: true });
-  const scenes = [];     // remember each scene's element and time range
-  let start = 0;
-
-  DATA.scenes.forEach((scene) => {
-    const section = make("section");
-    section.className = "scene";
-
-    const buildScene = templates[scene.type];
-    if (!buildScene) throw new Error("Unknown scene type: " + scene.type);
-    buildScene(scene, section);
-    stage.append(section);
-
-    // animate the scene's parts in, one after another
-    tl.from(section.children, {
-      opacity: 0, y: 50, duration: 0.8, stagger: 0.3
-    }, start);
-
-    scenes.push({ section, start, end: start + scene.duration });
-    start += scene.duration;
+  sections.forEach((section, i) => {
+    tl.from(section.querySelectorAll(".anim"),
+      { opacity: 0, y: 50, duration: 0.8, stagger: 0.3 }, TIMING[i].start);
   });
 
-  // ---------- the two things the renderer needs ----------
-  window.__duration = start;
+  // The two things the renderer needs
+  window.__duration = TIMING[TIMING.length - 1].end;
   window.__seek = (t) => {
-    tl.time(t);                                   // jump the animation to time t
-    scenes.forEach((s) => {                       // show only the scene that is active at t
-      s.section.style.visibility = (t >= s.start && t < s.end) ? "visible" : "hidden";
+    tl.time(t);
+    sections.forEach((section, i) => {
+      const active = t >= TIMING[i].start && t < TIMING[i].end;
+      section.style.visibility = active ? "visible" : "hidden";
     });
   };
   window.__seek(0);
 
-  // ---------- debug mode: add ?debug to the address ----------
+  // Debug mode: add ?debug to the address to get a slider
   if (location.search.includes("debug")) {
     const fit = () => { stage.style.transform = "scale(" + (window.innerWidth / ${width}) + ")"; };
     fit();
     window.addEventListener("resize", fit);
 
     const slider = document.createElement("input");
-    slider.type = "range"; slider.min = 0; slider.max = start; slider.step = 0.01; slider.value = 0;
+    slider.type = "range"; slider.min = 0; slider.max = window.__duration; slider.step = 0.01; slider.value = 0;
     slider.style.cssText = "position:fixed; bottom:12px; left:5%; width:80%; z-index:10;";
     const label = document.createElement("span");
     label.style.cssText = "position:fixed; bottom:10px; right:5%; color:#fff; font:20px monospace; z-index:10;";

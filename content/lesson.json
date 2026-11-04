@@ -16,12 +16,37 @@
       "id": "scene-2",
       "type": "points",
       "heading": "The Sun",
-      "points": [
-        "A star at the center",
-        "Provides light and heat",
-        "Holds the planets in orbit"
-      ],
+      "points": ["A star at the center", "Provides light and heat", "Holds the planets in orbit"],
       "narration": "At the center of our solar system is the Sun, a star that provides light and heat.",
+      "duration": 8
+    },
+    {
+      "id": "scene-3",
+      "type": "comparison",
+      "heading": "Two kinds of planets",
+      "left":  { "title": "Inner planets", "text": "Small and rocky, close to the Sun." },
+      "right": { "title": "Outer planets", "text": "Huge gas and ice giants, far from the Sun." },
+      "narration": "The inner planets are small and rocky, while the outer planets are huge gas and ice giants.",
+      "duration": 8
+    },
+    {
+      "id": "scene-4",
+      "type": "steps",
+      "heading": "How it formed",
+      "steps": [
+        "A cloud of gas and dust collapses",
+        "The Sun forms at the center",
+        "Planets form from the leftover material"
+      ],
+      "narration": "A cloud of gas and dust collapsed. The Sun formed at the center, and the planets grew from the leftover material.",
+      "duration": 8
+    },
+    {
+      "id": "scene-5",
+      "type": "summary",
+      "heading": "Remember",
+      "text": "One star, eight planets, and billions of years of history.",
+      "narration": "To remember: one star, eight planets, and billions of years of history.",
       "duration": 8
     }
   ]
